@@ -20,9 +20,9 @@ let
   });
 
   set = pkgs.haskell-nix.cabalProject' {
-    name = "all-hies-template";
+    name = "http-api"; # relates to .cabal file
     src = pkgs.haskell-nix.haskellLib.cleanGit {
-      name = "all-hies-template";
+      name = "http-api";
       src = ./.;
     };
     ghc = pkgs.haskell-nix.compiler.ghc883;
@@ -31,10 +31,10 @@ let
       nonReinstallablePkgs = [ "rts" "ghc-heap" "ghc-prim" "integer-gmp" "integer-simple" "base" "deepseq" "array" "ghc-boot-th" "pretty" "template-haskell" "ghcjs-prim" "ghcjs-th" "ghc-boot" "ghc" "Win32" "array" "binary" "bytestring" "containers" "directory" "filepath" "ghc-boot" "ghc-compact" "ghc-prim" "hpc" "mtl" "parsec" "process" "text" "time" "transformers" "unix" "xhtml" "terminfo" ];
     }];
   };
-in set.hsPkgs.all-hies-template.components.exes.http-api // {
+in set.hsPkgs.http-api.components.exes.http-api // {
   env = set.hsPkgs.shellFor {
     packages = p: [
-      p.all-hies-template
+      p.http-api
     ];
     exactDeps = true;
     tools = {
