@@ -1,50 +1,61 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Main where
 
 import Network.HTTP.Client
+import Network.HTTP.Simple hiding (httpLbs)
 import Network.HTTP.Types.Status (statusCode)
 import Data.Time.Clock
 
-  {-
--- https://github.com/snoyberg/http-client/blob/master/TUTORIAL.md
--- https://stackoverflow.com/questions/38853256/sessions-with-http-client
-
-curl 'https://app.radar.pwc.com/radar/app/auth/login' \
-  -H 'authority: app.radar.pwc.com' \
-  -H 'accept: application/json' \
-  -H 'cache: no-cache' \
-  -H 'user-agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.89 Safari/537.36' \
-  -H 'content-type: application/x-www-form-urlencoded' \
-  -H 'origin: https://app.radar.pwc.com' \
-  -H 'sec-fetch-site: same-origin' \
-  -H 'sec-fetch-mode: cors' \
-  -H 'sec-fetch-dest: empty' \
-  -H 'referer: https://app.radar.pwc.com/radar/' \
-  -H 'accept-language: en-GB,en;q=0.9,en-US;q=0.8,fr;q=0.7,la;q=0.6,es;q=0.5' \
-  --data-raw $'username=decoy9697%40gmail.com&password=Password123\u0021' \
-  --compressed
--}
-
-
+loginUrl :: String
+loginUrl = "http://localhost:11780/radar/app/auth/login"
 
 main :: IO ()
 main = do
   manager <- newManager defaultManagerSettings
 
   now1 <- getCurrentTime
-  request1 <- parseRequest "http://cnn.com"
-  response1 <- httpLbs request1 manager
 
-  putStrLn $ "The status code was: " ++ show ( statusCode $ responseStatus response1)
-  -- print $ responseBody response
+  let pairs = [ ("username", "decoy9697@gmail.com") , ("password", "Password123!") ]
 
-  let (jar1, _) = updateCookieJar response1 request1 now1 (createCookieJar [])
+  let loginRequest = setRequestHost "localhost"
+                   $ setRequestPort 11780
+                   $ setRequestPath "/radar/app/auth/login"
+                   $ setRequestHeader "Content-Type" ["application/x-www-form-urlencoded"]
+                   $ urlEncodedBody pairs defaultRequest
+
+  loginResponse <- httpLbs loginRequest manager
+
+  putStrLn $ "The status code was: " ++ show ( statusCode $ responseStatus loginResponse)
+
+  -----------------------------------------------------------------------------
+
+  let (jar1, _) = updateCookieJar loginResponse loginRequest now1 (createCookieJar [])
   putStrLn $ "new jar: " ++ show jar1
 
-  req2 <- parseRequest "http://cnn.com"
+  let allTeamsRequest = setRequestMethod "GET"
+                      $ setRequestHost "localhost"
+                      $ setRequestPort 11780
+                      $ setRequestPath "/radar/app/admin/teams"
+                      $ setRequestHeader "Content-Type" ["application/json"]
+                      $ setRequestHeader "Accept" ["application/json"]
+                      defaultRequest
   now2 <- getCurrentTime
-  let (request2, jar2) = insertCookiesIntoRequest req2 jar1 now2
+  let (request2, jar2) = insertCookiesIntoRequest allTeamsRequest jar1 now2
 
-  response2 <- httpLbs request2 manager
+  allTeamsResponse <- httpLbs request2 manager
 
-  putStrLn $ "\nThe status code was: " ++ show ( statusCode $ responseStatus response2)
-  -- print $ responseBody response2
+  putStrLn $ "\nThe status code was: " ++ show ( statusCode $ responseStatus allTeamsResponse)
+  print $ responseBody allTeamsResponse
+
+  -- Find team with team.name == 'Radar Team'
+  -- change team.team.targetWorkflowSettings.adverseMediaEnabled = true
+  -- POST team.team to  /radar/app/admin/team
+
+
+
+
+
+
+
+
