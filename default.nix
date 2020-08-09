@@ -43,6 +43,9 @@ in set.hsPkgs.http-api.components.exes.http-api // {
     };
     shellHook = ''
       export HIE_HOOGLE_DATABASE=$(realpath "$(dirname "$(realpath "$(which hoogle)")")/../share/doc/hoogle/default.hoo")
+      :q() {
+        exit
+      }
     '';
   };
 }
