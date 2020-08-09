@@ -21,4 +21,6 @@ executable http-api
                      , Cabal == 3.2.0.0
                      , time
                      , http-client
+                     , http-conduit
                      , http-types
+                     , aeson
