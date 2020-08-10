@@ -20,7 +20,7 @@ instance FromJSON MediaScreeningKeywordList where
   parseJSON _          = mzero
 
 instance Show MediaScreeningKeywordList where
-  show mskl = "\name: " ++ name mskl
+  show mskl = "\nname: " ++ name mskl
            ++ "\nid: " ++ Types.MediaScreeningKeywordList.id mskl
            ++ "\nkeywords: " ++ foldr (\b a -> b ++ "\n" ++ a) "\n" (keywords mskl)
 

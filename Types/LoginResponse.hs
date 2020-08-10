@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+
 module Types.LoginResponse where
 
 import Data.Aeson

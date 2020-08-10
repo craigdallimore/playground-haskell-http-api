@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveGeneric, DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric, DeriveAnyClass, OverloadedStrings #-}
 
 module Types where
 
@@ -8,7 +8,6 @@ import Control.Monad
 
 import Types.LoginResponse hiding (name)
 import Types.MediaScreeningKeywordList hiding (name, id)
-import qualified Data.Vector as V
 
 foldString :: [String] -> String
 foldString = foldr (\b a -> b ++ "\n" ++ a) "\n"
@@ -110,4 +109,4 @@ instance Show TeamsItem where
 
 -------------------------------------------------------------------------------
 
-data TeamsResponse = TeamsResponse [TeamsItem] deriving (Show, Generic, FromJSON)
+newtype TeamsResponse = TeamsResponse [TeamsItem] deriving (Show, Generic, FromJSON)

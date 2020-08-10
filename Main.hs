@@ -3,14 +3,22 @@
 module Main where
 
 import Data.Aeson
-import Types
+import Data.Time.Clock
+import Data.Foldable (find)
 import Network.HTTP.Client
 import Network.HTTP.Simple hiding (httpLbs)
 import Network.HTTP.Types.Status (statusCode)
-import Data.Time.Clock
+import Types
 
 loginUrl :: String
 loginUrl = "http://localhost:11780/radar/app/auth/login"
+
+teamName :: TeamsItem -> String
+teamName = name . team
+
+getTeam :: String -> TeamsResponse -> Maybe Team
+getTeam name (TeamsResponse tr) = team <$> find x tr where
+  x ti = teamName ti == name
 
 main :: IO ()
 main = do
@@ -28,12 +36,12 @@ main = do
 
   loginResponse <- httpLbs loginRequest manager
 
-  putStrLn $ "The status code was: " ++ show ( statusCode $ responseStatus loginResponse)
+  -- putStrLn $ "The status code was: " ++ show ( statusCode $ responseStatus loginResponse)
 
   -----------------------------------------------------------------------------
 
   let (jar1, _) = updateCookieJar loginResponse loginRequest now1 (createCookieJar [])
-  putStrLn $ "new jar: " ++ show jar1
+  -- putStrLn $ "new jar: " ++ show jar1
 
   let allTeamsRequest = setRequestMethod "GET"
                       $ setRequestHost "localhost"
@@ -47,8 +55,12 @@ main = do
 
   allTeamsResponse <- httpLbs request2 manager
 
-  putStrLn $ "\nThe status code was: " ++ show ( statusCode $ responseStatus allTeamsResponse)
-  print $ responseBody allTeamsResponse
+  -- putStrLn $ "\nThe status code was: " ++ show ( statusCode $ responseStatus allTeamsResponse)
+
+  let mteams = decode (responseBody allTeamsResponse) :: Maybe TeamsResponse
+  let mteam  = mteams >>= getTeam "Radar Team"
+
+  print $ adverseMediaEnabled . targetWorkflowSettings <$> mteam
 
   -- Find team with team.name == 'Radar Team'
   -- change team.team.targetWorkflowSettings.adverseMediaEnabled = true
