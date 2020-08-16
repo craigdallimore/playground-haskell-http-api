@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
 
-module Examples where
+module Example where
 
 import Text.RawString.QQ
 import Data.ByteString.Lazy (ByteString)

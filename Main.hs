@@ -2,9 +2,11 @@
 
 module Main where
 
+import Control.Lens
 import Data.Aeson
 import Data.Time.Clock
 import Data.Foldable (find)
+import Example
 import Network.HTTP.Client
 import Network.HTTP.Simple hiding (httpLbs)
 import Network.HTTP.Types.Status (statusCode)
@@ -19,6 +21,14 @@ teamName = name . team
 getTeam :: String -> TeamsResponse -> Maybe Team
 getTeam name (TeamsResponse tr) = team <$> find x tr where
   x ti = teamName ti == name
+
+main' :: Maybe Team
+main' = do
+  tr <- decode teamsResponseEx :: Maybe TeamsResponse
+  getTeam "Blue" tr
+
+enableAdverseMedia :: Team -> Team
+enableAdverseMedia = set _ True
 
 main :: IO ()
 main = do
