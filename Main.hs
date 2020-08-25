@@ -34,9 +34,6 @@ bt = Bool True
 getTeam :: Maybe Value -> Maybe Value
 getTeam mv = mv >>= \v -> v ^? key "team"
 
-main' :: IO ()
-main' = B.putStrLn . getTeamByName "Radar Team" $ teamsResponseEx
-
 updateTeamByName :: Text -> B.ByteString -> B.ByteString
 updateTeamByName teamName s = do
   let x :: Maybe Value = s ^? values . filtered (hasTeamName teamName)
