@@ -35,11 +35,11 @@ getTeam :: Maybe Value -> Maybe Value
 getTeam mv = mv >>= \v -> v ^? key "team"
 
 main' :: IO ()
-main' = B.putStrLn . j $ teamsResponseEx
+main' = B.putStrLn . getTeamByName "Radar Team" $ teamsResponseEx
 
-j :: B.ByteString -> B.ByteString
-j s = do
-  let x :: Maybe Value = s ^? values . filtered (hasTeamName "Blue")
+updateTeamByName :: Text -> B.ByteString -> B.ByteString
+updateTeamByName teamName s = do
+  let x :: Maybe Value = s ^? values . filtered (hasTeamName teamName)
   let y :: Maybe Value = set mediaEnabledLens bt <$> x
   let z :: Maybe Value = getTeam y
   encodePretty z
@@ -61,12 +61,12 @@ main = do
 
   loginResponse <- httpLbs loginRequest manager
 
-  -- putStrLn $ "The status code was: " ++ show ( statusCode $ responseStatus loginResponse)
+  putStrLn "Login requested"
+  putStrLn $ "The status code was: " ++ show ( statusCode $ responseStatus loginResponse)
 
   -----------------------------------------------------------------------------
 
   let (jar1, _) = updateCookieJar loginResponse loginRequest now1 (createCookieJar [])
-  -- putStrLn $ "new jar: " ++ show jar1
 
   let allTeamsRequest = setRequestMethod "GET"
                       $ setRequestHost "localhost"
@@ -80,16 +80,33 @@ main = do
 
   allTeamsResponse <- httpLbs request2 manager
 
-  -- putStrLn $ "\nThe status code was: " ++ show ( statusCode $ responseStatus allTeamsResponse)
+  putStrLn "Teams requested"
+  putStrLn $ "\nThe status code was: " ++ show ( statusCode $ responseStatus allTeamsResponse)
 
-  -- let mteams = decode (responseBody allTeamsResponse) :: Maybe TeamsResponse
-  -- let mteam  = mteams >>= getTeam "Radar Team"
+  -----------------------------------------------------------------------------
 
-  -- print $ adverseMediaEnabled . targetWorkflowSettings <$> mteam
+  let mteams = responseBody allTeamsResponse
+  let mteam  = updateTeamByName "Radar Team" mteams
 
-  -- Find team with team.name == 'Radar Team'
-  -- change team.team.targetWorkflowSettings.adverseMediaEnabled = true
-  -- POST team.team to  /radar/app/admin/team
+  let putTeamRequest = setRequestMethod "POST"
+                     $ setRequestHost "localhost"
+                     $ setRequestPort 11780
+                     $ setRequestPath "/radar/app/admin/team"
+                     $ setRequestHeader "Content-Type" ["application/json"]
+                     $ setRequestHeader "Accept" ["application/json"]
+                     $ setRequestBodyLBS mteam
+                     defaultRequest
+  now3 <- getCurrentTime
+  let (request3, _) = insertCookiesIntoRequest putTeamRequest jar2 now3
+
+  putTeamResponse <- httpLbs request3 manager
+
+  putStrLn "Updated Team sent"
+  putStrLn $ "\nThe status code was: " ++ show ( statusCode $ responseStatus putTeamResponse)
+
+  print mteam
+
+  -----------------------------------------------------------------------------
 
   pure ()
 
