@@ -1,0 +1,5 @@
+:set -XOverloadedStrings
+:l Main.hs Example.hs
+import Data.Aeson.Lens
+import Data.Aeson.Encode.Pretty
+:set prompt "> "

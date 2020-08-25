@@ -1,9 +1,14 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings, ScopedTypeVariables #-}
 
 module Main where
 
 import Control.Lens
 import Data.Aeson
+import Data.Aeson.Lens
+import Data.Aeson.Encode.Pretty
+import qualified Data.ByteString.Lazy.Char8 as B
+import Data.Monoid (Any)
+import Data.Text hiding (unlines)
 import Data.Time.Clock
 import Data.Foldable (find)
 import Example
@@ -15,20 +20,30 @@ import Types
 loginUrl :: String
 loginUrl = "http://localhost:11780/radar/app/auth/login"
 
-teamName :: TeamsItem -> String
-teamName = name . team
+hasTeamName :: Text -> Value -> Bool
+hasTeamName name = has (key "team" . key "name" . _String . only name)
 
-getTeam :: String -> TeamsResponse -> Maybe Team
-getTeam name (TeamsResponse tr) = team <$> find x tr where
-  x ti = teamName ti == name
+mediaEnabledLens :: AsValue t => Traversal' t Value
+mediaEnabledLens = key "team"
+                 . key "targetWorkflowSettings"
+                 . key "adverseMediaEnabled"
 
-main' :: Maybe Team
-main' = do
-  tr <- decode teamsResponseEx :: Maybe TeamsResponse
-  getTeam "Blue" tr
+bt :: Value
+bt = Bool True
 
-enableAdverseMedia :: Team -> Team
-enableAdverseMedia = set _ True
+getTeam :: Maybe Value -> Maybe Value
+getTeam mv = mv >>= \v -> v ^? key "team"
+
+main' :: IO ()
+main' = B.putStrLn . j $ teamsResponseEx
+
+j :: B.ByteString -> B.ByteString
+j s = do
+  let x :: Maybe Value = s ^? values . filtered (hasTeamName "Blue")
+  let y :: Maybe Value = set mediaEnabledLens bt <$> x
+  let z :: Maybe Value = getTeam y
+  encodePretty z
+
 
 main :: IO ()
 main = do
@@ -67,15 +82,16 @@ main = do
 
   -- putStrLn $ "\nThe status code was: " ++ show ( statusCode $ responseStatus allTeamsResponse)
 
-  let mteams = decode (responseBody allTeamsResponse) :: Maybe TeamsResponse
-  let mteam  = mteams >>= getTeam "Radar Team"
+  -- let mteams = decode (responseBody allTeamsResponse) :: Maybe TeamsResponse
+  -- let mteam  = mteams >>= getTeam "Radar Team"
 
-  print $ adverseMediaEnabled . targetWorkflowSettings <$> mteam
+  -- print $ adverseMediaEnabled . targetWorkflowSettings <$> mteam
 
   -- Find team with team.name == 'Radar Team'
   -- change team.team.targetWorkflowSettings.adverseMediaEnabled = true
   -- POST team.team to  /radar/app/admin/team
 
+  pure ()
 
 
 

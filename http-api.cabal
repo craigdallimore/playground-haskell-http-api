@@ -24,10 +24,13 @@ executable http-api
                      -- cabal(-install) version in default.nix
                      , Cabal == 3.2.0.0
                      , aeson
+                     , aeson-pretty
                      , bytestring
                      , http-client
                      , http-conduit
                      , http-types
                      , lens
+                     , lens-aeson
                      , raw-strings-qq
+                     , text
                      , time

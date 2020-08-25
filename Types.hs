@@ -1,8 +1,7 @@
-{-# LANGUAGE DeriveGeneric, DeriveAnyClass, TemplateHaskell #-}
+{-# LANGUAGE DeriveGeneric, DeriveAnyClass #-}
 
 module Types where
 
-import Control.Lens
 import Control.Monad
 import Data.Aeson
 import GHC.Generics
@@ -39,8 +38,6 @@ data Team = Team
   , tenant :: String
   , id :: TeamId
   } deriving (Show, Generic, ToJSON, FromJSON)
-
-makeLenses ''Team
 
 -------------------------------------------------------------------------------
 
